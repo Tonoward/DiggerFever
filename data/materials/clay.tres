@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="MaterialData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/material_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/textures/Rock Top.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+texture = ExtResource("2")
+id = &"clay"
+display_name = "Clay"
+color = Color(0.72, 0.5, 0.32, 1)
+hardness = 2.0
+friction = 1.3
+max_integrity = 10.0
+resource_type = &""
+resource_amount = 0
+depth_min = 0
+depth_max = 9999
+depth_peak = 40
+depth_falloff = 60.0
+rarity_weight = 4.0
+is_cluster = false
+cluster_size_min = 4
+cluster_size_max = 12
+tile_atlas_coords = Vector2i(1, 0)
+render_priority = 1

@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="MaterialData" format=3 uid="uid://cdgimt03jtp1f"]
+
+[ext_resource type="Script" uid="uid://lstvtppxnyc0" path="res://scripts/data/material_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"diamond_ore"
+display_name = "Diamond Vein"
+color = Color(0.65, 0.92, 0.95, 1)
+hardness = 500.0
+friction = 3.0
+max_integrity = 26.0
+resource_type = &"diamond"
+resource_amount = 1
+depth_min = 20
+depth_peak = 50
+depth_falloff = 80.0
+rarity_weight = 0.15
+is_cluster = true
+cluster_size_min = 2
+cluster_size_max = 5
+tile_atlas_coords = Vector2i(5, 0)
+render_priority = 5

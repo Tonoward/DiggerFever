@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="WorldGenConfig" format=3 uid="uid://bunf7yewebb1j"]
+
+[ext_resource type="Script" uid="uid://ybr5odtjwmeg" path="res://scripts/data/world_gen_config.gd" id="1"]
+[ext_resource type="Script" uid="uid://bgkajfp18f5h3" path="res://scripts/data/noise_settings.gd" id="1_raoq7"]
+
+[sub_resource type="Resource" id="Resource_2qk1j"]
+script = ExtResource("1_raoq7")
+metadata/_custom_type_script = "uid://bgkajfp18f5h3"
+
+[resource]
+script = ExtResource("1")
+grid_width = 160
+grid_depth = 800
+cell_size_px = 8
+noise_settings = SubResource("Resource_2qk1j")

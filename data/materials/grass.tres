@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="MaterialData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/material_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/textures/Grass Top.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+texture = ExtResource("2")
+id = &"grass"
+display_name = "Grass"
+color = Color(0.3, 0.65, 0.25, 1)
+hardness = 0.5
+friction = 0.8
+max_integrity = 3.0
+resource_type = &""
+resource_amount = 0
+depth_min = 0
+depth_max = 0
+depth_peak = 0
+depth_falloff = 1.0
+rarity_weight = 1.0
+is_cluster = false
+cluster_size_min = 4
+cluster_size_max = 12
+tile_atlas_coords = Vector2i(6, 0)
+render_priority = 10

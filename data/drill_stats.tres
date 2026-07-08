@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="DrillStats" format=3 uid="uid://cd0lbhdf5svyr"]
+
+[ext_resource type="Script" uid="uid://ples5w5p1kc5" path="res://scripts/data/drill_stats.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+power = 150.0

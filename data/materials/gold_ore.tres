@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="MaterialData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/material_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"gold_ore"
+display_name = "Gold Ore"
+color = Color(0.9, 0.78, 0.18, 1)
+hardness = 7.0
+friction = 2.5
+max_integrity = 20.0
+resource_type = &"gold"
+resource_amount = 2
+depth_min = 80
+depth_max = 9999
+depth_peak = 200
+depth_falloff = 100.0
+rarity_weight = 0.5
+is_cluster = true
+cluster_size_min = 4
+cluster_size_max = 9
+tile_atlas_coords = Vector2i(4, 0)
+render_priority = 4

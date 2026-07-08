@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"diamond_gem"
+display_name = "Diamond"
+color = Color(0.7, 0.95, 1.0, 1)
+required_power = 9.0
+reward_type = &"diamond"
+reward_amount = 1
+depth_min = 250
+depth_max = 9999
+depth_peak = 350
+depth_falloff = 70.0
+rarity_weight = 0.08
+cluster_size_min = 1
+cluster_size_max = 1
+tile_atlas_coords = Vector2i(7, 0)

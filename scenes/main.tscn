@@ -1,0 +1,30 @@
+[gd_scene format=3 uid="uid://blbrr0ianhoqh"]
+
+[ext_resource type="Script" uid="uid://owbjwedv0qlr" path="res://scripts/main.gd" id="1"]
+[ext_resource type="Resource" uid="uid://bunf7yewebb1j" path="res://data/world_gen_config.tres" id="2"]
+[ext_resource type="PackedScene" uid="uid://dterrain001" path="res://scenes/terrain.tscn" id="3"]
+[ext_resource type="PackedScene" uid="uid://ddrill0001" path="res://scenes/drill.tscn" id="4"]
+
+[node name="Main" type="Node2D" unique_id=960241854]
+script = ExtResource("1")
+world_config = ExtResource("2")
+
+[node name="Terrain" parent="." unique_id=1582234932 instance=ExtResource("3")]
+use_material_textures = true
+
+[node name="Drill" parent="." unique_id=147649231 instance=ExtResource("4")]
+position = Vector2(40, -28)
+collision_layer = 1
+collision_mask = 1
+
+[node name="Camera2D" type="Camera2D" parent="Drill" unique_id=1613957890]
+zoom = Vector2(2, 2)
+
+[node name="HUD" type="CanvasLayer" parent="." unique_id=1556558238]
+
+[node name="Label" type="Label" parent="HUD" unique_id=2069413063]
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 360.0
+offset_bottom = 40.0
+text = "Drag to dig. Press R to regenerate world."

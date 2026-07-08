@@ -1,0 +1,6 @@
+[gd_resource type="Resource" script_class="NoiseSettings" format=3 uid="uid://c5sxido4pqdo5"]
+
+[ext_resource type="Script" uid="uid://bgkajfp18f5h3" path="res://scripts/data/noise_settings.gd" id="1"]
+
+[resource]
+script = ExtResource("1")

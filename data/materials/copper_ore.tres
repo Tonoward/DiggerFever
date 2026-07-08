@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="MaterialData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/material_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"copper_ore"
+display_name = "Copper Ore"
+color = Color(0.72, 0.38, 0.15, 1)
+hardness = 5.0
+friction = 2.0
+max_integrity = 14.0
+resource_type = &"copper"
+resource_amount = 3
+depth_min = 20
+depth_max = 9999
+depth_peak = 80
+depth_falloff = 80.0
+rarity_weight = 1.0
+is_cluster = true
+cluster_size_min = 5
+cluster_size_max = 12
+tile_atlas_coords = Vector2i(3, 0)
+render_priority = 3
