@@ -1,6 +1,8 @@
 ## TileDebris.gd
 ## Small physics fragment spawned when a cell is excavated. Falls under gravity,
-## collides with solid terrain cells and the drill, then frees itself.
+## collides with solid terrain cells and the drill, then frees itself. Some fragments
+## (see `collectible` in setup()) instead fly to the drill and shrink away partway through,
+## as a visual "getting collected" moment -- see SUCK_DELAY/SUCK_DURATION below.
 ##
 ## Adapted from the FeverDiggerPetru prototype's TileDebris to this project's TerrainGrid
 ## (grid lookups via world_to_cell / is_empty) and DrillController (footprint radius).
@@ -17,6 +19,13 @@ const ANGULAR_MAX: float     = 8.0    ## max initial angular velocity (rad/s)
 const ANGULAR_DAMPING: float = 0.80   ## spin multiplier applied on each bounce
 const GHOST_DURATION: float  = 0.18   ## seconds of free-fall with no collision after spawn
 
+## "Collectible" fragments (see `collectible` param of setup()) pop out normally for
+## SUCK_DELAY seconds, then fly to the drill and shrink away over SUCK_DURATION -- a small
+## bit of juice suggesting the material got picked up. Regular fragments just fall/bounce
+## until LIFETIME runs out; not every piece needs to fly home for this to read well.
+const SUCK_DELAY: float    = 0.25
+const SUCK_DURATION: float = 0.3
+
 var _color: Color
 var _half: float
 var _velocity: Vector2
@@ -28,8 +37,14 @@ var _drill_radius: float = 0.0
 var _resting: bool = false
 var _timer: SceneTreeTimer
 
+var _collectible: bool = false
+var _suck_delay_left: float = 0.0
+var _being_sucked: bool = false
+var _suck_elapsed: float = 0.0
+var _suck_start_half: float = 0.0
 
-func setup(color: Color, size: float, grid: TerrainGrid, impulse: Vector2, drill: Node2D = null, drill_radius: float = 0.0) -> void:
+
+func setup(color: Color, size: float, grid: TerrainGrid, impulse: Vector2, drill: Node2D = null, drill_radius: float = 0.0, collectible: bool = false) -> void:
 	_color        = color
 	_half         = size * 0.5
 	_grid         = grid
@@ -37,6 +52,8 @@ func setup(color: Color, size: float, grid: TerrainGrid, impulse: Vector2, drill
 	_drill_radius = drill_radius
 	_velocity     = impulse
 	_ghost_time   = GHOST_DURATION
+	_collectible  = collectible
+	_suck_delay_left = SUCK_DELAY
 	var spin_sign: float = signf(impulse.x) if impulse.x != 0.0 else (1.0 if randf() > 0.5 else -1.0)
 	_angular_velocity = spin_sign * randf_range(ANGULAR_MAX * 0.4, ANGULAR_MAX)
 	queue_redraw()
@@ -54,6 +71,20 @@ func _cell_solid(cell: Vector2i) -> bool:
 
 
 func _process(delta: float) -> void:
+	if _being_sucked:
+		_process_suck(delta)
+		return
+
+	# Countdown runs regardless of resting/falling state, so a collectible fragment gets
+	# pulled in on schedule whether it's still tumbling or already settled.
+	if _collectible:
+		_suck_delay_left -= delta
+		if _suck_delay_left <= 0.0:
+			_being_sucked = true
+			_suck_elapsed = 0.0
+			_suck_start_half = _half
+			return
+
 	if _resting:
 		return
 
@@ -120,6 +151,20 @@ func _process(delta: float) -> void:
 		var ground := _grid.world_to_cell(position + Vector2(0.0, _half + 2.0))
 		if _cell_solid(ground):
 			_resting = true
+
+
+## Flies toward the drill's current position and shrinks to nothing over SUCK_DURATION,
+## then frees itself -- the visual "getting collected" moment. No collision here; it's
+## purely cosmetic and rides on top of the instant, guaranteed material count in Main.
+func _process_suck(delta: float) -> void:
+	_suck_elapsed += delta
+	var t := clampf(_suck_elapsed / SUCK_DURATION, 0.0, 1.0)
+	if _drill != null and is_instance_valid(_drill):
+		position = position.lerp(_drill.global_position, 0.25)
+	_half = _suck_start_half * (1.0 - t)
+	queue_redraw()
+	if t >= 1.0:
+		queue_free()
 
 
 ## If the fragment's center is inside a solid cell, teleport it to the nearest open cell
