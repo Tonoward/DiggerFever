@@ -15,15 +15,27 @@ const DEBRIS_IMPULSE_SIDE_CELLS: float = 3.0  ## +/- sideways scatter, in cells/
 const DEBRIS_IMPULSE_MIN_CELLS: float = 3.0   ## kick toward the drill/hole, in cells/sec
 const DEBRIS_IMPULSE_MAX_CELLS: float = 7.0
 
+## Chance that a given spawned fragment plays the "sucked up" collection animation instead
+## of just falling/bouncing like ordinary debris (see TileDebris.setup's `collectible` arg).
+## Purely visual -- the material count below always increases, regardless of this roll.
+const DEBRIS_COLLECT_CHANCE: float = 0.35
+
 @export var world_config: WorldGenConfig
 
 var grid: TerrainGrid
 
 var _debris: Array[TileDebris] = []
 
+## Materials collected so far this run, keyed by MaterialData.id -> count. Drives the
+## color-block + counter row in the HUD.
+var _material_counts: Dictionary = {}
+## MaterialData.id -> the Label showing that material's count, so updates are O(1).
+var _material_labels: Dictionary = {}
+
 @onready var terrain: TerrainController = $Terrain
 @onready var drill: DrillController = $Drill
 @onready var _hud: Label = $HUD/Label
+@onready var _materials_hud: GridContainer = $HUD/MaterialsRow
 
 func _ready() -> void:
 	drill.resource_collected.connect(_on_resource_collected)
@@ -31,6 +43,7 @@ func _ready() -> void:
 
 func _generate_world() -> void:
 	_clear_debris()
+	_clear_material_hud()
 	grid = WorldGenerator.generate(world_config)
 	grid.cell_excavated.connect(_on_cell_excavated)
 	terrain.setup(grid)
@@ -110,6 +123,7 @@ func _on_cell_excavated(x: int, y: int, mat: MaterialData) -> void:
 	if mat == null:
 		return
 	_spawn_debris(x, y, mat)
+	_collect_material(mat)
 
 func _spawn_debris(x: int, y: int, mat: MaterialData) -> void:
 	# Drop stale refs (freed by their own lifetime timer), then evict oldest if at cap.
@@ -134,7 +148,8 @@ func _spawn_debris(x: int, y: int, mat: MaterialData) -> void:
 	var debris := TileDebris.new()
 	add_child(debris)
 	debris.global_position = cell_center
-	debris.setup(mat.color, grid.cell_size_px * DEBRIS_SIZE_FACTOR, grid, impulse, drill, drill.footprint_radius_px)
+	var collectible := randf() < DEBRIS_COLLECT_CHANCE
+	debris.setup(mat.color, grid.cell_size_px * DEBRIS_SIZE_FACTOR, grid, impulse, drill, drill.footprint_radius_px, collectible)
 	_debris.append(debris)
 
 func _clear_debris() -> void:
@@ -142,3 +157,41 @@ func _clear_debris() -> void:
 		if is_instance_valid(d):
 			d.queue_free()
 	_debris.clear()
+
+# --- Materials HUD ----------------------------------------------------------------
+# A row of "color block + xN" entries, one per material that's been dug at least once.
+# The count always increases the instant a cell is cleared -- independent of whether that
+# cell's debris fragment happens to play the "sucked up" animation, so the number is never
+# wrong or delayed by chance/visual timing.
+
+func _collect_material(mat: MaterialData) -> void:
+	var count: int = _material_counts.get(mat.id, 0) + 1
+	_material_counts[mat.id] = count
+
+	var label: Label = _material_labels.get(mat.id)
+	if label == null:
+		label = _add_material_entry(mat)
+		_material_labels[mat.id] = label
+	label.text = "x%d" % count
+
+## Builds one "color swatch + count label" entry and adds it to the HUD row.
+func _add_material_entry(mat: MaterialData) -> Label:
+	var entry := HBoxContainer.new()
+	entry.add_theme_constant_override("separation", 4)
+
+	var swatch := ColorRect.new()
+	swatch.custom_minimum_size = Vector2(14, 14)
+	swatch.color = mat.color
+	entry.add_child(swatch)
+
+	var label := Label.new()
+	entry.add_child(label)
+
+	_materials_hud.add_child(entry)
+	return label
+
+func _clear_material_hud() -> void:
+	_material_counts.clear()
+	_material_labels.clear()
+	for child in _materials_hud.get_children():
+		child.queue_free()
