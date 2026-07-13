@@ -21,6 +21,9 @@ MaterialDatabase="*res://scripts/autoload/material_database.gd"
 
 [display]
 
+window/size/viewport_width=360
+window/size/viewport_height=800
+window/handheld/orientation="portrait"
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
