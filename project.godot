@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="DiggerFeverTest"
-run/main_scene="uid://blbrr0ianhoqh"
+run/main_scene="uid://bmainmenu001"
 config/features=PackedStringArray("4.7", "Mobile")
 config/icon="res://icon.svg"
 
@@ -23,9 +23,9 @@ MaterialDatabase="*res://scripts/autoload/material_database.gd"
 
 window/size/viewport_width=360
 window/size/viewport_height=800
-window/handheld/orientation="portrait"
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+window/handheld/orientation="portrait"
 
 [editor]
 
