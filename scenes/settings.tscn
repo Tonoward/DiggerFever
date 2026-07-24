@@ -1,6 +1,6 @@
-[gd_scene format=3 uid="uid://bmainmenu001"]
+[gd_scene format=3 uid="uid://bsettings001"]
 
-[ext_resource type="Script" uid="uid://cmainmenu001" path="res://scripts/main_menu.gd" id="1"]
+[ext_resource type="Script" uid="uid://csettings001" path="res://scripts/settings.gd" id="1"]
 
 [sub_resource type="StyleBoxFlat" id="btn_normal"]
 content_margin_left = 24.0
@@ -72,7 +72,7 @@ corner_radius_top_right = 12
 corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
 
-[node name="MainMenu" type="Control" unique_id=200000001]
+[node name="Settings" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -81,7 +81,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
 
-[node name="Background" type="ColorRect" parent="." unique_id=200000007]
+[node name="Background" type="ColorRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -90,7 +90,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.02, 0.05, 0.13, 1)
 
-[node name="Stars" type="CPUParticles2D" parent="." unique_id=200000008]
+[node name="Stars" type="CPUParticles2D" parent="."]
 position = Vector2(180, 400)
 amount = 50
 lifetime = 15.0
@@ -102,36 +102,86 @@ initial_velocity_max = 160.0
 scale_amount_max = 3.0
 color = Color(0.85, 0.92, 1, 1)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=200000002]
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -151.0
-offset_top = -112.5
-offset_right = 151.0
-offset_bottom = 119.0
+offset_left = -160.0
+offset_top = -210.0
+offset_right = 160.0
+offset_bottom = 210.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 20
+theme_override_constants/separation = 16
 alignment = 1
 
-[node name="Title" type="Label" parent="VBoxContainer" unique_id=200000003]
+[node name="Title" type="Label" parent="VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.4, 1)
 theme_override_colors/font_outline_color = Color(0.05, 0.03, 0, 1)
 theme_override_constants/outline_size = 8
-theme_override_font_sizes/font_size = 56
-text = "DiggerFever"
+theme_override_font_sizes/font_size = 48
+text = "Settings"
 horizontal_alignment = 1
 
-[node name="Spacer" type="Control" parent="VBoxContainer" unique_id=200000009]
+[node name="Spacer" type="Control" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="MusicRow" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="MusicLabel" type="Label" parent="VBoxContainer/MusicRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.95, 0.85, 1)
+theme_override_font_sizes/font_size = 24
+text = "Music"
+vertical_alignment = 1
+
+[node name="MusicToggle" type="CheckButton" parent="VBoxContainer/MusicRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.85, 1)
+button_pressed = true
+
+[node name="MusicSlider" type="HSlider" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="SfxRow" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="SfxLabel" type="Label" parent="VBoxContainer/SfxRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.95, 0.85, 1)
+theme_override_font_sizes/font_size = 24
+text = "Sound Effects"
+vertical_alignment = 1
+
+[node name="SfxToggle" type="CheckButton" parent="VBoxContainer/SfxRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.85, 1)
+button_pressed = true
+
+[node name="SfxSlider" type="HSlider" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="Spacer2" type="Control" parent="VBoxContainer"]
 custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
 
-[node name="PlayButton" type="Button" parent="VBoxContainer" unique_id=200000004]
+[node name="BackButton" type="Button" parent="VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.95, 0.85, 1)
 theme_override_colors/font_hover_color = Color(1, 0.88, 0.45, 1)
@@ -142,17 +192,4 @@ theme_override_styles/normal = SubResource("btn_normal")
 theme_override_styles/hover = SubResource("btn_hover")
 theme_override_styles/pressed = SubResource("btn_pressed")
 theme_override_styles/focus = SubResource("btn_focus")
-text = "Play"
-
-[node name="SettingsButton" type="Button" parent="VBoxContainer" unique_id=200000005]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.95, 0.85, 1)
-theme_override_colors/font_hover_color = Color(1, 0.88, 0.45, 1)
-theme_override_colors/font_pressed_color = Color(0.8, 0.6, 0.25, 1)
-theme_override_colors/font_focus_color = Color(1, 0.95, 0.85, 1)
-theme_override_font_sizes/font_size = 32
-theme_override_styles/normal = SubResource("btn_normal")
-theme_override_styles/hover = SubResource("btn_hover")
-theme_override_styles/pressed = SubResource("btn_pressed")
-theme_override_styles/focus = SubResource("btn_focus")
-text = "Settings"
+text = "Back"
