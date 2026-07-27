@@ -88,14 +88,20 @@ You play a lone astronaut roaming the galaxy aboard a spaceship. You touch down 
 - No custom tooling UI for v0 — edit the `.tres` resources (material hardness/friction/yield, cluster sizes, drill power/maneuverability) directly in the Inspector and re-run the scene.
 - Add one small debug convenience: a key bind (e.g. `R`) that re-runs `WorldGenerator` with a new random seed without restarting the whole game, so terrain-tuning iteration is fast.
 
+### 8. Loading screen (real progress, not a fake animation)
+- The actual bottleneck when starting a game isn't the scene file (tiny) — it's `WorldGenerator`'s base-fill pass, which is O(grid_width × grid_depth) and can be well over 100k cells. So `WorldGenerator.generate(config, progress: Callable)` now yields a frame every `depth / PROGRESS_STEPS` rows (via `await Engine.get_main_loop().process_frame`) and reports real fractional progress through that Callable — the percentage on screen tracks actual work done, not a canned animation. The remaining passes (clusters/items/surface) are comparatively cheap and aren't individually instrumented; they're folded into the tail of the bar (0.9 → 1.0).
+- `Main` awaits `WorldGenerator.generate(...)` and exposes this as `generation_progress(fraction)` / `generation_finished` signals, so anything can watch a world get built without needing to know how generation works internally.
+- `scenes/loading_screen.tscn` + `scripts/loading_screen.gd`: a `CanvasLayer` (high `layer` value, so it always draws over Main's own HUD regardless of node order) shown by `main_menu.gd`'s Play button instead of `main.tscn` directly. It instantiates Main itself, adds it to the tree as a second top-level node (`add_child.call_deferred` — required, since `add_child` on the tree root fails synchronously during another scene's own `_ready()`), and listens for `generation_progress`/`generation_finished` to drive a `ProgressBar` + percentage label. Main generates completely hidden underneath; once `generation_finished` fires, the loading screen promotes Main to `current_scene` and frees itself, revealing a fully-built world with no popping/flash of an empty map.
+- Verified headless: progress climbs smoothly from 0% to 100% across ~40 yielded frames for a 160×800 grid, the R-key regenerate path (now also async) still completes correctly end-to-end, and all entry points (`main.tscn` directly, `loading_screen.tscn`, and the full project boot through the menu) produce identical, pre-existing residual shutdown warnings — i.e. no regressions introduced.
+
 ## Files created
 - `scripts/data/material_data.gd`, `drill_stats.gd`, `world_gen_config.gd`, `item_data.gd`, `noise_settings.gd`
 - `scripts/autoload/material_database.gd` (registered as autoload in `project.godot`)
 - `scripts/terrain/terrain_grid.gd`, `world_generator.gd`, `terrain_controller.gd`, `terrain_noise.gd`
 - `scripts/drill/drill_input.gd`, `drill_controller.gd`
 - `scripts/effects/tile_debris.gd`
-- `scripts/main.gd`
-- `scenes/terrain.tscn`, `scenes/drill.tscn`, `scenes/main.tscn` (composes terrain + drill + camera + HUD)
+- `scripts/main.gd`, `scripts/loading_screen.gd`
+- `scenes/terrain.tscn`, `scenes/drill.tscn`, `scenes/main.tscn` (composes terrain + drill + camera + HUD), `scenes/loading_screen.tscn`
 - `data/materials/*.tres` (grass, dirt, clay, stone, copper_ore, gold_ore, diamond_ore), `data/items/*.tres` (treasure_box, diamond_gem), `data/world_gen_config.tres`, `data/drill_stats.tres`, `data/noise_settings.tres`
 
 ## Verification

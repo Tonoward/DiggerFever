@@ -4,6 +4,14 @@ extends Node2D
 ## world (WorldGenerator), hands the shared TerrainGrid to the terrain renderer and the
 ## drill, spawns debris whenever a cell is dug, and regenerates on the R key. The actual
 ## logic lives in the other scripts; this file mostly just connects them.
+##
+## World generation is awaited (see WorldGenerator.generate), so building the world takes a
+## few frames rather than freezing everything for one long frame. `generation_progress` and
+## `generation_finished` exist so a loading screen (scenes/loading_screen.tscn) can watch
+## this happen and show a real percentage instead of a fake one.
+
+signal generation_progress(fraction: float)
+signal generation_finished
 
 ## Debris (little fragments that pop out when a cell is dug).
 ## Impulse magnitudes are expressed in cell-widths/second (not raw px) so the "pop" stays
@@ -44,7 +52,7 @@ func _ready() -> void:
 func _generate_world() -> void:
 	_clear_debris()
 	_clear_material_hud()
-	grid = WorldGenerator.generate(world_config)
+	grid = await WorldGenerator.generate(world_config, func(t): generation_progress.emit(t))
 	grid.cell_excavated.connect(_on_cell_excavated)
 	terrain.setup(grid)
 	drill.setup(grid)
@@ -60,6 +68,8 @@ func _generate_world() -> void:
 	var debug_img_path := OS.get_environment("DIGGER_DEBUG_IMG")
 	if debug_img_path != "":
 		_save_debug_image(debug_img_path)
+
+	generation_finished.emit()
 
 
 # --- Dev-only debug helpers (safe to ignore) ------------------------------------

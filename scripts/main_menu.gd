@@ -12,7 +12,7 @@ func _ready() -> void:
 func _on_play_pressed() -> void:
 	AudioManager.play_blip()
 	AudioManager.stop_music()
-	get_tree().change_scene_to_file("res://scenes/main.tscn")
+	get_tree().change_scene_to_file("res://scenes/loading_screen.tscn")
 
 func _on_settings_pressed() -> void:
 	AudioManager.play_blip()

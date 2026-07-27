@@ -10,8 +10,17 @@ class_name WorldGenerator
 ## Pass 4 forces the very top row to the "grass" material (if defined), so the world always
 ## has a clean, deterministic starting line regardless of noise warp -- overrides whatever
 ## the depth-based passes picked there.
+##
+## The base-fill pass is by far the most expensive part (one iteration per cell, so it scales
+## with grid_width * grid_depth), so `generate` optionally reports progress through it and
+## yields a frame every so often -- this is what lets a loading screen show a real, moving
+## percentage instead of freezing the game for however long generation takes.
 
-static func generate(config: WorldGenConfig) -> TerrainGrid:
+## How many progress updates (and frame-yields) to spread the base-fill pass across,
+## regardless of grid size -- bigger grids just do more rows per update.
+const PROGRESS_STEPS: int = 40
+
+static func generate(config: WorldGenConfig, progress: Callable = Callable()) -> TerrainGrid:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = config.seed_value
 
@@ -19,10 +28,12 @@ static func generate(config: WorldGenConfig) -> TerrainGrid:
 	var grid := TerrainGrid.new(config.grid_width, config.grid_depth, config.cell_size_px, palette)
 	var noise := TerrainNoise.new(config.noise_settings, config.seed_value)
 
-	_base_fill_pass(grid, palette, noise)
+	await _base_fill_pass(grid, palette, noise, progress)
 	_cluster_pass(grid, palette, config, rng)
 	_item_pass(grid, MaterialDatabase.items, config, rng)
 	_surface_pass(grid, palette)
+	if progress.is_valid():
+		progress.call(1.0)
 
 	return grid
 
@@ -48,13 +59,15 @@ static func _weight_at_depth(depth_min: int, depth_max: int, depth_peak: int, de
 	var d := y - depth_peak
 	return rarity_weight * exp(-(d * d) / (2.0 * falloff * falloff))
 
-static func _base_fill_pass(grid: TerrainGrid, palette: Array[MaterialData], noise: TerrainNoise) -> void:
+static func _base_fill_pass(grid: TerrainGrid, palette: Array[MaterialData], noise: TerrainNoise, progress: Callable) -> void:
 	var base_indices: Array[int] = []
 	for i in range(palette.size()):
 		if not palette[i].is_cluster:
 			base_indices.append(i)
 	if base_indices.is_empty():
 		return
+
+	var rows_per_step := maxi(1, grid.depth / PROGRESS_STEPS)
 
 	for y in range(grid.depth):
 		for x in range(grid.width):
@@ -68,6 +81,16 @@ static func _base_fill_pass(grid: TerrainGrid, palette: Array[MaterialData], noi
 					best_weight = w
 					best_index = i
 			grid.set_cell(x, y, best_index)
+
+		# Yield to the engine periodically so a loading screen can actually redraw with the
+		# updated percentage -- without this, the whole pass runs in one uninterrupted frame
+		# and the game would just freeze until it's done, no matter what we report.
+		if y % rows_per_step == 0:
+			if progress.is_valid():
+				# Base fill is the dominant cost; leave the rest of the bar (0.9-1.0) for
+				# the comparatively cheap cluster/item/surface passes that follow.
+				progress.call(float(y) / grid.depth * 0.9)
+			await Engine.get_main_loop().process_frame
 
 static func _cluster_pass(grid: TerrainGrid, palette: Array[MaterialData], config: WorldGenConfig, rng: RandomNumberGenerator) -> void:
 	for i in range(palette.size()):
