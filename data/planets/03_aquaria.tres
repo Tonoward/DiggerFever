@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="PlanetData" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://cplanetdata1" path="res://scripts/data/planet_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"aquaria"
+display_name = "Aquaria"
+color = Color(0.24, 0.55, 0.9, 1)

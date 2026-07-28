@@ -39,7 +39,10 @@ digger-fever-test/
 ├── PROJECT_GUIDE.md         # (this file) code map
 │
 ├── scenes/                  # The .tscn scene files (node trees you can open visually)
-│   ├── main.tscn            #   Root scene: Terrain + Drill + HUD
+│   ├── main_menu.tscn       #   First screen: Play / Settings
+│   ├── settings.tscn        #   Audio settings
+│   ├── planet_select.tscn   #   Planet carousel, shown after Play
+│   ├── main.tscn            #   Root game scene: Terrain + Drill + HUD
 │   ├── terrain.tscn         #   The terrain renderer node
 │   └── drill.tscn           #   The drill: sprite, camera, input, collision
 │
@@ -48,13 +51,15 @@ digger-fever-test/
 │   ├── noise_settings.tres
 │   ├── drill_stats.tres
 │   ├── materials/           #   One .tres per terrain material (grass, dirt, stone, ores...)
-│   └── items/               #   One .tres per collectible (treasure_box, diamond_gem)
+│   ├── items/               #   One .tres per collectible (treasure_box, diamond_gem)
+│   └── planets/             #   One .tres per selectable planet (01_verdania, 02_ferros, ...)
 │
 ├── assets/                  # Textures (terrain ground textures, drill sprite sheets)
 │
 └── scripts/                 # All the code (GDScript)
     ├── main.gd              #   Conductor: ties everything together
     ├── autoload/            #   Global singletons (always loaded)
+    ├── ui/                  #   Front-end widgets (the planet circle)
     ├── data/                #   The Resource classes that define .tres fields
     ├── terrain/             #   World data, generation, and rendering
     ├── drill/               #   Player drill: input + movement + digging
@@ -72,11 +77,26 @@ digger-fever-test/
 | [scripts/main.gd](scripts/main.gd) | The "conductor". Generates a world, gives the shared `TerrainGrid` to the terrain and drill, spawns debris when cells are dug, handles the **R**-to-regenerate key. Read this first — it shows how the pieces connect. Also holds *dev-only* debug helpers (clearly marked; safe to ignore). |
 | [scenes/main.tscn](scenes/main.tscn) | The scene that actually runs. Node tree: `Main` → `Terrain`, `Drill` (with a `Camera2D`), `HUD`. |
 
+### Front-end (menus)
+
+The screens the player walks through before the game: **main menu → planet select → game**
+(plus main menu → settings). Each is a plain `Control` scene swapped in with
+`change_scene_to_file`; the menu music lives on the `AudioManager` autoload so it survives
+those swaps.
+
+| File | What it does |
+|------|--------------|
+| [scripts/main_menu.gd](scripts/main_menu.gd) | Title screen. **Play** → planet selection, **Settings** → settings screen. |
+| [scripts/settings.gd](scripts/settings.gd) | Music/SFX toggles + volume sliders, applied live and saved via `AudioManager`. |
+| [scripts/planet_select.gd](scripts/planet_select.gd) | The planet carousel: the middle planet is the selected one and is drawn largest; drag/swipe, tap a side planet, or use the `<` / `>` buttons to spin it — endlessly, since the wheel wraps around. **Confirm** stores the pick in `PlanetDatabase` and starts the game. The header comment explains the single `_scroll` value everything is built on. |
+| [scripts/ui/planet_view.gd](scripts/ui/planet_view.gd) | `PlanetView` — draws one planet: a flat colored circle for now, or `PlanetData.texture` as soon as real artwork exists. |
+
 ### `scripts/autoload/` — global singletons
 
 | File | What it does |
 |------|--------------|
 | [scripts/autoload/material_database.gd](scripts/autoload/material_database.gd) | Registered as `MaterialDatabase` in `project.godot`, so it's reachable from anywhere. At startup it loads every material/item `.tres` into `materials` / `items` arrays. Add a new material file and it appears automatically — no code change. |
+| [scripts/autoload/planet_database.gd](scripts/autoload/planet_database.gd) | Registered as `PlanetDatabase`. Loads every planet `.tres` from `data/planets/` (sorted by file name = carousel order) and remembers the confirmed `selected_planet` across the scene change into the game. |
 
 ### `scripts/data/` — Resource definitions (the "shape" of the .tres files)
 
@@ -86,6 +106,7 @@ These are pure data classes. Each `@export` field becomes an editable row in the
 |------|---------|
 | [scripts/data/material_data.gd](scripts/data/material_data.gd) | `MaterialData`: a terrain material — color/texture, `hardness`, `friction`, `max_integrity` (HP), what depth it appears at, whether it forms ore-style clusters, and `render_priority` (draw order). |
 | [scripts/data/item_data.gd](scripts/data/item_data.gd) | `ItemData`: a collectible broken open in one hit if drill `power ≥ required_power`. |
+| [scripts/data/planet_data.gd](scripts/data/planet_data.gd) | `PlanetData`: a selectable planet — `id`, `display_name`, and its looks (`color` placeholder circle, or a `texture` once there's artwork). |
 | [scripts/data/drill_stats.gd](scripts/data/drill_stats.gd) | `DrillStats`: drill `power`, speed, steering feel, knockback, vibration. |
 | [scripts/data/world_gen_config.gd](scripts/data/world_gen_config.gd) | `WorldGenConfig`: grid size, cell size in pixels, random `seed_value`, cluster density, and a link to the noise settings. |
 | [scripts/data/noise_settings.gd](scripts/data/noise_settings.gd) | `NoiseSettings`: Perlin-noise knobs that bend flat material layers into organic blobs. |
@@ -138,6 +159,9 @@ These are pure data classes. Each `@export` field becomes an editable row in the
 | Make a material harder/softer, change its color, its yield | its file in [data/materials/](data/materials/) (Inspector) |
 | Add a brand-new material or ore | copy an existing `data/materials/*.tres`, give it a unique `id` — it auto-loads |
 | Change how deep/rare a material is | that material's `depth_min/max/peak`, `rarity_weight`, cluster fields |
+| Add / recolor / reorder a planet | copy a `data/planets/*.tres` and give it a unique `id` — it auto-loads; the `01_`, `02_`... file-name prefixes set the carousel order |
+| Give a planet real artwork instead of a circle | set that planet's `texture` in its `.tres` |
+| Change the carousel feel (spacing, zoom of the center planet, snap/flick) | the constants at the top of [scripts/planet_select.gd](scripts/planet_select.gd) |
 | Change world size, cell size, or seed | [data/world_gen_config.tres](data/world_gen_config.tres) |
 | Change the blobby-ness of terrain layers | [data/noise_settings.tres](data/noise_settings.tres) (`frequency`, `warp_amount`) |
 | Tune drill power, speed, steering, knockback, shake | [data/drill_stats.tres](data/drill_stats.tres) |
